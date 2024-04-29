@@ -1,0 +1,279 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Nom          String                @db.VarChar(80)
+  Prenom       String                @db.VarChar(80)
+  NumTel       String                @db.VarChar(8)
+  Adresse      String
+  email        String                @unique @db.VarChar(80)
+  MotDePasse   String                @db.VarChar(80)
+  Ville        String
+  CodePostal   String?
+  PhotoProfil  String?
+  //isAdmin      Boolean               @default(false)
+  //MotDePasseConfirmation String        @db.VarChar(80)
+  resetCode    String?
+  publications Publication[]         @relation("user_publications")
+  favorites    PublicationFavorite[]
+  //subscriptions Subscription[]
+}
+
+model Admin {
+  ida         Int     @id @default(autoincrement())
+  email       String  @unique @db.VarChar(80)
+  MotDePasse  String  @db.VarChar(80)
+  PhotoProfil String?
+  isAdmin     Boolean @default(true)
+}
+
+model Publication {
+  pubid Int @id @default(autoincrement())
+
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  marque                  String                   @db.VarChar(20)
+  model                   String                   @db.VarChar(30)
+  anneeFabrication        Int                      @db.Int()
+  nombrePlace             Int                      @db.Int()
+  couleur                 String                   @db.VarChar(30)
+  kilometrage             Int                      @db.Int()
+  prix                    Float
+  descrption              String?                  @db.VarChar(400)
+  typeCarburant           TypeCarburant
+  userId                  Int // Foreign key referencing User
+  images                  Image[]
+  video                   Video?                   @relation(fields: [videoId], references: [id])
+  videoId                 Int?                     @unique
+  city                    City
+  boiteVitesse            BoiteVitesse
+  transmission            String
+  carrassorie             String
+  sellerie                Sellerie
+
+  equippements            Equippement[]
+  // Define the relation to User
+  user                    User                     @relation("user_publications", fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  favoris                 PublicationFavorite[]
+  equippementPublications EquippementPublication[]
+}
+
+enum TypeCarburant {
+  Essence
+  Diesel
+  GPL
+  GNL
+  Electrique
+  Ethanol
+}
+
+enum BoiteVitesse {
+  Manuelle
+  Automatique
+}
+
+enum Sellerie {
+  Alcantara
+  Cuir
+  Similcuir
+  Tisuu
+  Plastique
+  Velours
+}
+
+model Equippement {
+  equipid                 Int                      @id @default(autoincrement())
+  name                    String
+  publications            Publication[]
+  equippementPublications EquippementPublication[]
+}
+model EquippementPublication {
+  idep          Int         @id @default(autoincrement())
+  publicationId Int
+  equippementId      Int
+  publication   Publication @relation(fields: [publicationId], references: [pubid])
+  equippement   Equippement @relation(fields: [equippementId ], references: [equipid])
+
+  @@unique([publicationId, equippementId ])
+}
+
+
+model Video {
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  id          Int          @id @default(autoincrement())
+  url         String
+  publication Publication?
+}
+
+model Image {
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  id            Int         @id @default(autoincrement())
+  path          String
+  publicationId Int
+  publication   Publication @relation(fields: [publicationId], references: [pubid])
+}
+
+model PublicationFavorite {
+  userId        Int
+  publicationId Int
+  idpf          Int         @id @default(autoincrement())
+  user          User        @relation(fields: [userId], references: [id])
+  publication   Publication @relation(fields: [publicationId], references: [pubid])
+}
+
+model Subscription {
+  ids       Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Foreign key to the User model
+  //userId Int
+  //user   User @relation(fields: [userId], references: [id])
+
+  name        String
+  price       Float
+  duration    Int
+  description String
+}
+
+model Expert {
+  ide       Int      @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String   @unique
+  cv        String
+  city      City     @default(TUNIS)
+  passe     String
+  tel       String
+  //isApproved Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum City {
+  TUNIS
+  Tunis
+  tunis
+
+  ARIANA
+  Ariana
+  ariana
+
+  Ben_Arous
+  ben_arous
+  BEN_AROUS
+  ben_Arous
+
+  Bizerte
+  bizerte
+  BIZERTE
+
+  Gabes
+  gabes
+  GABES
+
+  Gafsa
+  gafsa
+  GAFSA
+
+  Jendouba
+  jendouba
+  JENDOUBA
+
+  Kairouan
+  kairouan
+  KAIROUAN
+
+  Kasserine
+  KASERINE
+  kasserine
+
+  kebili
+  Kebili
+  KEBILI
+
+  Mahdia
+  mahdia
+  MAHDIA
+
+  Manouba
+  manouba
+  MANOUBA
+
+  Medenine
+  medenine
+  MEDENINE
+
+  Monastir
+  monastir
+  MONASTIR
+
+  NABEUL
+  Nabeul
+  nabeul
+
+  Sfax
+  sfax
+  SFAX
+
+  Sidi_Bouzid
+  sidi_Bouzid
+  sidi_bouzid
+  SIDI_BOUZID
+
+  Siliana
+  siliana
+  SILIANA
+
+  SOUSSE
+  Sousse
+  sousse
+
+  Tataouine
+  tataouine
+  TATAOUINE
+
+  TOZEUR
+  Tozeur
+  tozeur
+
+  Zaghouan
+  zaghoun
+  ZAGHOUAN
+
+  BEJA
+  Beja
+  beja
+
+  Kef
+  kef
+  KEF
+}
+
+model ExpertRequest {
+  ider       Int      @id @default(autoincrement())
+  firstName  String
+  lastName   String
+  email      String
+  telephone  String
+  cv         String
+  isApproved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
